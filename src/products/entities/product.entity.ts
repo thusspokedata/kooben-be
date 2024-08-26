@@ -1,6 +1,6 @@
 // the entity is a class that represents a table (Product) in the database
 
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
@@ -22,7 +22,6 @@ export class Product {
 
   @Column('text', {
     unique: true,
-    nullable: true, // Hacemos nullable porque el campo slug es opcional
   })
   slug: string;
 
@@ -71,4 +70,21 @@ export class Product {
     nullable: true, // Agregamos el campo images que es opcional
   })
   images: string[];
+
+  @BeforeInsert()
+  checkSlugInsert() {
+    if (!this.slug) {
+      this.slug = this.title;
+    }
+    this.slug = this.slug
+      .toLowerCase()
+      .replace(/ /g, '_')
+      .replace(/,/g, '')
+      .replace(/'/g, '_')
+      .replace(/á/g, 'a')
+      .replace(/é/g, 'e')
+      .replace(/í/g, 'i')
+      .replace(/ó/g, 'o')
+      .replace(/ú/g, 'u');
+  }
 }
