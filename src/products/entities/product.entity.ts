@@ -77,6 +77,12 @@ export class Product {
   })
   images: string[];
 
+  @Column('text', {
+    array: true,
+    default: [],
+  })
+  tags: string[];
+
   @BeforeInsert()
   checkSlugInsert() {
     if (!this.slug) {
