@@ -1,6 +1,12 @@
 // the entity is a class that represents a table (Product) in the database
 
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Product {
@@ -27,7 +33,7 @@ export class Product {
 
   @Column('int', {
     default: 0,
-    nullable: true, // Hacemos nullable porque el campo stock es opcional
+    nullable: true,
   })
   stock: number;
 
@@ -67,7 +73,7 @@ export class Product {
 
   @Column('text', {
     array: true,
-    nullable: true, // Agregamos el campo images que es opcional
+    nullable: true,
   })
   images: string[];
 
@@ -76,7 +82,16 @@ export class Product {
     if (!this.slug) {
       this.slug = this.title;
     }
-    this.slug = this.slug
+    this.slug = this.normalizeSlug(this.slug);
+  }
+
+  @BeforeUpdate()
+  checkSlugUpdate() {
+    this.slug = this.normalizeSlug(this.slug);
+  }
+
+  private normalizeSlug(slug: string): string {
+    return slug
       .toLowerCase()
       .replace(/ /g, '_')
       .replace(/,/g, '')
