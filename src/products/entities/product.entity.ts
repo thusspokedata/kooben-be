@@ -5,8 +5,10 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ProductImage } from '.';
 
 @Entity()
 export class Product {
@@ -71,11 +73,10 @@ export class Product {
   })
   height: number;
 
-  @Column('text', {
-    array: true,
-    nullable: true,
+  @OneToMany(() => ProductImage, (productImage) => productImage.product, {
+    cascade: true,
   })
-  images: string[];
+  images?: ProductImage[];
 
   @Column('text', {
     array: true,
