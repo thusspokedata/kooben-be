@@ -73,8 +73,13 @@ export class Product {
   })
   height: number;
 
+  // https://orkhan.gitbook.io/typeorm/docs/eager-and-lazy-relations
+  // Eager relations only work when you use find* methods. If you use QueryBuilder eager relations are
+  // disabled and have to use leftJoinAndSelect to load the relation. Eager relations can only be
+  // used on one side of the relationship, using eager: true on both sides of relationship is disallowed.
   @OneToMany(() => ProductImage, (productImage) => productImage.product, {
     cascade: true,
+    eager: true,
   })
   images?: ProductImage[];
 
