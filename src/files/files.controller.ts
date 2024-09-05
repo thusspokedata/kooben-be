@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { FilesService } from './files.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { fileFilter } from './helpers/fileFilter.helper';
+import { fileFilter, fileNamer } from './helpers';
 import { diskStorage } from 'multer';
 
 @Controller('files')
@@ -20,10 +20,7 @@ export class FilesController {
       fileFilter: fileFilter,
       storage: diskStorage({
         destination: './static/product-images',
-        filename: (req, file, cb) => {
-          const fileName = `${Date.now()}-${file.originalname}`;
-          cb(null, fileName);
-        },
+        filename: fileNamer,
       }),
     }),
   )
