@@ -49,6 +49,13 @@ export class AppModule {}
 npm install --save @nestjs/typeorm typeorm pg
 ```
 
+### execute seed 
+```
+http://127.0.0.1:3000/api/seed
+```
+
+
+
 
 
 ## Test
