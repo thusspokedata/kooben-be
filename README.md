@@ -70,3 +70,6 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
+
+
+https://docs.nestjs.com/techniques/file-upload

@@ -18,7 +18,9 @@ export class Product {
   @Column('text', { unique: true })
   title: string;
 
-  @Column('float', {
+  @Column('decimal', {
+    precision: 10,
+    scale: 2,
     default: 0,
   })
   price: number;
