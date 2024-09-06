@@ -8,7 +8,7 @@ export const fileNamer = (
   if (!file) return callback(new Error('No file provided'), '');
 
   const shortUuid = uuid().split('-')[0];
-  const fileName = `${shortUuid}-${file.originalname}`;
+  const fileName = `${shortUuid}-${file.originalname.replace(/\.[^/.]+$/, '')}`; // take the original name and remove the extension
 
   callback(null, fileName);
 };

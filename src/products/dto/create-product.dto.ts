@@ -2,6 +2,7 @@
 // dto means "data transfer object"
 // npm i class-validator class-transformer
 
+import { Transform } from 'class-transformer';
 import {
   IsArray,
   IsIn,
@@ -21,6 +22,7 @@ export class CreateProductDto {
   @IsNumber()
   @IsPositive()
   @IsOptional()
+  @Transform(({ value }) => parseFloat(value))
   price?: number;
 
   @IsString()
@@ -78,8 +80,8 @@ export class CreateProductDto {
   @IsOptional()
   tags: string[];
 
-  @IsString({ each: true })
-  @IsArray()
   @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
   images?: string[];
 }

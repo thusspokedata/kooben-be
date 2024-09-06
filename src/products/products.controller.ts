@@ -5,12 +5,15 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Patch,
   ParseUUIDPipe,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateProductDto, UpdateProductDto } from './dto';
@@ -20,8 +23,12 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  @UseInterceptors(FilesInterceptor('images'))
+  async create(
+    @Body() createProductDto: CreateProductDto,
+    @UploadedFiles() images: Express.Multer.File[],
+  ) {
+    return this.productsService.create(createProductDto, images);
   }
 
   @Get()
@@ -35,11 +42,18 @@ export class ProductsController {
   }
 
   @Patch(':id')
+  @UseInterceptors(FilesInterceptor('images'))
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProductDto: UpdateProductDto,
+    @UploadedFiles() images: Express.Multer.File[],
   ) {
-    return this.productsService.update(id, updateProductDto);
+    if (updateProductDto.price) {
+      updateProductDto.price = parseFloat(
+        updateProductDto.price as unknown as string,
+      );
+    }
+    return this.productsService.update(id, updateProductDto, images);
   }
 
   @Delete(':id')
