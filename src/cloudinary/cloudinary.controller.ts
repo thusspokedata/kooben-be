@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -9,10 +10,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
+import { ProductsService } from 'src/products/products.service';
 
 @Controller('cloudinary')
 export class CloudinaryController {
-  constructor(private readonly cloudinaryService: CloudinaryService) {}
+  constructor(
+    private readonly cloudinaryService: CloudinaryService,
+    private readonly productsService: ProductsService,
+  ) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -36,9 +41,10 @@ export class CloudinaryController {
     return { url };
   }
 
-  @Get('autocrop/:publicId')
-  getAutoCroppedUrl(@Param('publicId') publicId: string) {
-    const url = this.cloudinaryService.getAutoCroppedUrl(publicId);
-    return { url };
+  @Delete(':publicId')
+  async deleteImage(@Param('publicId') publicId: string) {
+    await this.cloudinaryService.deleteImage(publicId);
+
+    return { message: 'Image deleted successfully' };
   }
 }

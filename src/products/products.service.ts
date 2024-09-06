@@ -5,7 +5,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateProductDto } from './dto';
+import { CreateProductDto, UpdateProductDto } from './dto';
 // import { UpdateProductDto } from './dto';
 import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,6 +14,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { validate as isUUID } from 'uuid';
 import { ProductImage } from './entities';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { extractPublicId } from 'src/common/helpers';
 
 @Injectable()
 export class ProductsService {
@@ -37,7 +38,7 @@ export class ProductsService {
     await queryRunner.startTransaction();
 
     try {
-      const { ...productDetails } = createProductDto;
+      const { images: dtoImages = [], ...productDetails } = createProductDto;
       const product = this.productRepository.create(productDetails);
       await queryRunner.manager.save(product);
 
@@ -48,8 +49,10 @@ export class ProductsService {
         ),
       );
 
+      const allImageUrls = [...dtoImages, ...imageUrls];
+
       // Create ProductImage entities
-      const productImages = imageUrls.map((url) =>
+      const productImages = allImageUrls.map((url) =>
         this.productImageRepository.create({ url, product }),
       );
 
@@ -113,51 +116,89 @@ export class ProductsService {
     };
   }
 
-  // async update(id: string, updateProductDto: UpdateProductDto) {
-  //   const { images, ...toUpdate } = updateProductDto;
-  //   const product = await this.productRepository.preload({
-  //     id,
-  //     ...toUpdate,
-  //   });
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    images: Express.Multer.File[],
+  ) {
+    const { images: dtoImages = [], ...toUpdate } = updateProductDto;
 
-  //   if (!product) {
-  //     throw new NotFoundException('Producto no encontrado');
-  //   }
+    // Load the product with its current images
+    const product = await this.productRepository.findOne({
+      where: { id },
+      relations: ['images'], // Ensure images are loaded with the product
+    });
 
-  //   // https://orkhan.gitbook.io/typeorm/docs/insert-query-builder
-  //   const queryRunner = this.dataSource.createQueryRunner();
-  //   await queryRunner.connect();
-  //   await queryRunner.startTransaction();
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
 
-  //   try {
-  //     if (images) {
-  //       await queryRunner.manager.delete(ProductImage, {
-  //         product: { id },
-  //       });
-  //       product.images = images.map((image) =>
-  //         this.productImageRepository.create({ url: image }),
-  //       );
-  //     }
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-  //     await queryRunner.manager.save(product);
-  //     await queryRunner.commitTransaction();
-  //     await queryRunner.release();
+    try {
+      let uploadedImageUrls = [];
 
-  //     // await this.productRepository.save(product);
-  //     return this.findOnePlain(id);
-  //   } catch (error) {
-  //     await queryRunner.rollbackTransaction();
-  //     await queryRunner.release();
-  //     this.handleDBExceptions(error);
-  //   }
-  //   return `This action updates a #${id} product`;
-  // }
+      // Upload new images to Cloudinary
+      if (images && images.length > 0) {
+        uploadedImageUrls = await Promise.all(
+          images.map((image) =>
+            this.cloudinaryService.uploadImage(
+              image.buffer,
+              image.originalname,
+            ),
+          ),
+        );
+      }
+
+      // Combine existing images, DTO images, and newly uploaded images
+      const allImageUrls = [...dtoImages, ...uploadedImageUrls];
+
+      if (allImageUrls && allImageUrls.length > 0) {
+        // Create new ProductImage entities for the new URLs
+        const newImages = allImageUrls.map((imageUrl) =>
+          this.productImageRepository.create({ url: imageUrl, product }),
+        );
+
+        // Combine new images with the existing ones, preserving the association
+        product.images = [...product.images, ...newImages];
+      }
+
+      // Update product details
+      Object.assign(product, toUpdate);
+
+      // Save the product and its images
+      await queryRunner.manager.save(product);
+      await queryRunner.commitTransaction();
+      await queryRunner.release();
+
+      return this.findOnePlain(id);
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      this.handleDBExceptions(error);
+    }
+  }
 
   async remove(id: string) {
     const product = await this.findOne(id);
     if (!product) {
       throw new BadRequestException('Producto no encontrado');
     }
+
+    // Extrac publicIds from the images associated with the product
+    const imagePublicIds = product.images.map((image) =>
+      extractPublicId(image.url),
+    );
+
+    // Delete the images from Cloudinary
+    await Promise.all(
+      imagePublicIds.map((publicId) =>
+        this.cloudinaryService.deleteImage(publicId),
+      ),
+    );
+
     await this.productRepository.remove(product);
   }
 

@@ -48,12 +48,12 @@ export class CloudinaryService {
     });
   }
 
-  getAutoCroppedUrl(publicId: string) {
-    return cloudinary.url(publicId, {
-      crop: 'auto',
-      gravity: 'auto',
-      width: 500,
-      height: 500,
+  async deleteImage(publicId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(publicId, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
     });
   }
 }

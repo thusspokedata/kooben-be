@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Delete,
+  Patch,
   ParseUUIDPipe,
   Query,
   UseInterceptors,
@@ -15,15 +16,11 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
 import { PaginationDto } from '../common/dto/pagination.dto';
-import { CreateProductDto } from './dto';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CreateProductDto, UpdateProductDto } from './dto';
 
 @Controller('products')
 export class ProductsController {
-  constructor(
-    private readonly productsService: ProductsService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('images'))
@@ -44,13 +41,20 @@ export class ProductsController {
     return this.productsService.findOnePlain(term);
   }
 
-  // @Patch(':id')
-  // update(
-  //   @Param('id', ParseUUIDPipe) id: string,
-  //   @Body() updateProductDto: UpdateProductDto,
-  // ) {
-  //   return this.productsService.update(id, updateProductDto);
-  // }
+  @Patch(':id')
+  @UseInterceptors(FilesInterceptor('images'))
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @UploadedFiles() images: Express.Multer.File[],
+  ) {
+    if (updateProductDto.price) {
+      updateProductDto.price = parseFloat(
+        updateProductDto.price as unknown as string,
+      );
+    }
+    return this.productsService.update(id, updateProductDto, images);
+  }
 
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string) {
