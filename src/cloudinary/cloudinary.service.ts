@@ -19,7 +19,6 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       let generatedFileName: string;
 
-      // Generar el publicId con el helper
       fileNamer(
         null,
         { originalname: originalFileName } as Express.Multer.File,
