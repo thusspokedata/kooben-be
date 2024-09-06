@@ -10,14 +10,10 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
-import { ProductsService } from 'src/products/products.service';
 
 @Controller('cloudinary')
 export class CloudinaryController {
-  constructor(
-    private readonly cloudinaryService: CloudinaryService,
-    private readonly productsService: ProductsService,
-  ) {}
+  constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
