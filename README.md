@@ -73,3 +73,6 @@ $ npm run test:cov
 
 
 https://docs.nestjs.com/techniques/file-upload
+
+
+npm install @clerk/clerk-sdk-node cookie-parser
