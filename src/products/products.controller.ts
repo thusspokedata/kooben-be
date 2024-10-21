@@ -31,9 +31,16 @@ export class ProductsController {
     return this.productsService.create(createProductDto, images);
   }
 
+  // @Get()
+  // findAll(@Query() paginationDto: PaginationDto) {
+  //   return this.productsService.findAll(paginationDto);
+  // }
   @Get()
-  findAll(@Query() paginationDto: PaginationDto) {
-    return this.productsService.findAll(paginationDto);
+  findAll(
+    @Query() paginationDto: PaginationDto,
+    @Query('category') category?: string,
+  ) {
+    return this.productsService.findAll(paginationDto, category);
   }
 
   @Get(':term')

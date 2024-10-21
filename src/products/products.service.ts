@@ -69,14 +69,39 @@ export class ProductsService {
     }
   }
 
-  async findAll(paginationDto: PaginationDto) {
+  // async findAll(paginationDto: PaginationDto) {
+  //   const { limit = 10, offset = 0 } = paginationDto;
+  //   try {
+  //     const products = await this.productRepository.find({
+  //       take: limit,
+  //       skip: offset,
+  //       relations: { images: true },
+  //     });
+  //     return products.map(({ images, ...rest }) => ({
+  //       ...rest,
+  //       images: images.map((image) => image.url),
+  //     }));
+  //   } catch (error) {
+  //     this.handleDBExceptions(error);
+  //   }
+  // }
+
+  async findAll(paginationDto: PaginationDto, category?: string) {
     const { limit = 10, offset = 0 } = paginationDto;
+
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .take(limit)
+      .skip(offset)
+      .leftJoinAndSelect('product.images', 'images');
+
+    // If a category filter is provided, add a where condition
+    if (category) {
+      queryBuilder.andWhere('product.category = :category', { category });
+    }
+
     try {
-      const products = await this.productRepository.find({
-        take: limit,
-        skip: offset,
-        relations: { images: true },
-      });
+      const products = await queryBuilder.getMany();
       return products.map(({ images, ...rest }) => ({
         ...rest,
         images: images.map((image) => image.url),
