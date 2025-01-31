@@ -79,10 +79,10 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "engines": {
-      "node": "22.x",
-      "npm": "11.x"
-    }
+    "testEnvironment": "node"
+  },
+  "engines": {
+    "node": "22.x",
+    "npm": "11.x"
   }
 }
