@@ -1,4 +1,4 @@
-import { clerkClient } from '@clerk/clerk-sdk-node';
+import { clerkClient } from '@clerk/express';
 import {
   CanActivate,
   ExecutionContext,
@@ -15,7 +15,7 @@ export class ClerkAuthGuard implements CanActivate {
     const token = request.cookies.__session;
 
     try {
-      await clerkClient.verifyToken(token);
+      await clerkClient.sessions.getSession(token);
     } catch (error) {
       this.logger.error('Token verification failed', error);
       return false;

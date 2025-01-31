@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { clerkClient } from '@clerk/clerk-sdk-node';
+import { clerkClient } from '@clerk/express';
 
 @Injectable()
 export class AuthService {
