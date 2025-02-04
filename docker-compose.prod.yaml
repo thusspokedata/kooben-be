@@ -4,13 +4,9 @@ services:
   app:
     build:
       context: .
-      target: ${STAGE}
+      target: prod
       dockerfile: Dockerfile
 
-    image: thusspokedata/kooben-be:${APP_VERSION}
-    volumes:
-      - .:/app
-      - /app/node_modules
     container_name: koobenApp
     ports:
       - ${PORT}:${PORT}
