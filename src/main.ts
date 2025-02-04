@@ -8,7 +8,7 @@ async function bootstrap() {
   const logger = new Logger('main');
 
   app.enableCors();
-  
+
   app.use(cookieParser());
 
   app.setGlobalPrefix('api');
