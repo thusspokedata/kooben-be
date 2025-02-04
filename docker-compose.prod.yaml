@@ -6,7 +6,7 @@ services:
       context: .
       target: prod
       dockerfile: Dockerfile
-
+    image: thusspokedata/kooben-be:${APP_VERSION}
     container_name: koobenApp
     ports:
       - ${PORT}:${PORT}
