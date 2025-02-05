@@ -54,3 +54,11 @@ This project is still in progress, with active development ongoing.
 ---
 
 For more details, feel free to explore the repository!
+
+
+```bash
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  -t thusspokedata/kooben-be:latest \
+  --push .
+```
