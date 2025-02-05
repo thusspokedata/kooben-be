@@ -11,13 +11,6 @@ import { AuthModule } from './auth/auth.module';
   imports: [
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
-      ssl: process.env.STATE === 'prod',
-      extra: {
-        ssl:
-          process.env.STATE === 'prod' ? { rejectUnauthorized: false } : null,
-      },
-    }),
-    TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
       port: +process.env.DB_PORT,
@@ -26,6 +19,8 @@ import { AuthModule } from './auth/auth.module';
       password: process.env.DB_PASSWORD,
       autoLoadEntities: true,
       synchronize: true,
+      ssl: process.env.STAGE === 'prod' ? true : false,
+      extra: process.env.STAGE === 'prod' ? { ssl: { rejectUnauthorized: false } } : {},
     }),
     ProductsModule,
     CommonModule,
