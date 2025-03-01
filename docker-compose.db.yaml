@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:14.3
+    container_name: koobenDB
+    restart: always
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: kooben24aM0rir!
+      POSTGRES_DB: koobenDB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
