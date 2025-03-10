@@ -26,7 +26,7 @@ RUN npm install --omit=dev
 FROM node:18-alpine AS prod
 EXPOSE 3000
 WORKDIR /app
-ENV APP_VERSION=${APP_VERSION}
+ENV APP_VERSION=1.2.0
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 
