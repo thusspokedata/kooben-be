@@ -4,4 +4,4 @@ docker-compose.yml
 node_modules/
 docker-compose.prod.yml
 dist
-package-lock.json
+# package-lock.json

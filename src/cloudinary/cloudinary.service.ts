@@ -29,13 +29,19 @@ export class CloudinaryService {
       );
 
       cloudinary.uploader
-        .upload_stream({ public_id: generatedFileName }, (error, result) => {
-          if (error) {
-            reject(error);
-          } else {
-            resolve(result.secure_url);
-          }
-        })
+        .upload_stream(
+          {
+            upload_preset: 'kooben',
+            public_id: generatedFileName,
+          },
+          (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result.secure_url);
+            }
+          },
+        )
         .end(fileBuffer);
     });
   }
