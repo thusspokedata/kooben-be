@@ -89,7 +89,7 @@ export class UsersService {
         await this.create({
           clerkId: 'default-admin',
           name: 'Admin',
-          email: 'admin@kooben.com',
+          email: process.env.adminEmail,
           role: Role.ADMIN,
         });
         console.log('Default admin created successfully');
