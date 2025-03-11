@@ -1,7 +1,8 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Role } from '../enums/role.enum';
 
 @Entity()
-export class Customer {
+export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
@@ -13,6 +14,13 @@ export class Customer {
 
   @Column('text', { unique: true })
   email: string;
+
+  @Column({
+    type: 'enum',
+    enum: Role,
+    default: Role.CLIENT,
+  })
+  role: Role;
 
   @Column('text', { nullable: true })
   address: string;

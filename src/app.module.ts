@@ -6,7 +6,7 @@ import { CommonModule } from './common/common.module';
 import { SeedModule } from './seed/seed.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AuthModule } from './auth/auth.module';
-import { CustomersModule } from './customers/customers.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -21,14 +21,17 @@ import { CustomersModule } from './customers/customers.module';
       autoLoadEntities: true,
       synchronize: true,
       ssl: process.env.STAGE === 'prod' ? true : false,
-      extra: process.env.STAGE === 'prod' ? { ssl: { rejectUnauthorized: false } } : {},
+      extra:
+        process.env.STAGE === 'prod'
+          ? { ssl: { rejectUnauthorized: false } }
+          : {},
     }),
     ProductsModule,
     CommonModule,
     SeedModule,
     CloudinaryModule,
     AuthModule,
-    CustomersModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
