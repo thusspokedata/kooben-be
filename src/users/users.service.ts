@@ -24,12 +24,9 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const { rememberAddress, ...userData } = createUserDto;
-
       const user = this.userRepository.create({
-        ...userData,
-        role: userData.role || Role.CLIENT,
-        hasDefaultAddress: rememberAddress || false,
+        ...createUserDto,
+        role: createUserDto.role || Role.CLIENT,
       });
 
       await this.userRepository.save(user);
@@ -115,15 +112,17 @@ export class UsersService {
   async removeAddress(id: string) {
     const user = await this.findOne(id);
 
-    // Eliminar toda la información de dirección
-    user.address = null;
-    user.zipCode = null;
-    user.city = null;
-    user.province = null;
-    user.hasDefaultAddress = false;
+    // Buscar todas las direcciones del usuario
+    const addresses = await this.addressRepository.find({
+      where: { userId: user.id },
+    });
 
-    await this.userRepository.save(user);
-    return { message: 'Address removed successfully' };
+    // Eliminar todas las direcciones
+    if (addresses.length > 0) {
+      await this.addressRepository.remove(addresses);
+    }
+
+    return { message: 'All addresses removed successfully' };
   }
 
   async createDefaultAdmin() {
