@@ -20,6 +20,11 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Post('sync')
+  findOrCreateByClerkId(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.findOrCreateByClerkId(createUserDto);
+  }
+
   @Get()
   findAll() {
     return this.usersService.findAll();

@@ -57,6 +57,33 @@ export class UsersService {
     return user;
   }
 
+  async findOrCreateByClerkId(userData: CreateUserDto) {
+    try {
+      // Try to find the user first
+      const existingUser = await this.userRepository.findOneBy({
+        clerkId: userData.clerkId,
+      });
+
+      // If user exists, return it
+      if (existingUser) {
+        return existingUser;
+      }
+
+      console.log(
+        `User with clerkId ${userData.clerkId} not found, creating new user`,
+      );
+
+      // Create new user if not exists, passing the entire CreateUserDto
+      return await this.create(userData);
+    } catch (error) {
+      console.error('Error in findOrCreateByClerkId:', error);
+      if (error.code === '23505') {
+        throw new BadRequestException('User already exists');
+      }
+      throw new BadRequestException('Failed to create user');
+    }
+  }
+
   async findAdmins() {
     return this.userRepository.findBy({ role: Role.ADMIN });
   }
@@ -83,19 +110,27 @@ export class UsersService {
   async createDefaultAdmin() {
     const adminCount = await this.userRepository.countBy({ role: Role.ADMIN });
 
+    const adminEmail = process.env.adminEmail;
+    console.log(`Admin email from environment: ${adminEmail || 'Not set'}`);
+
     if (adminCount === 0) {
       console.log('Creating default admin user...');
       try {
+        const defaultEmail = adminEmail;
+
         await this.create({
           clerkId: 'default-admin',
           name: 'Admin',
-          email: process.env.adminEmail,
+          email: defaultEmail,
           role: Role.ADMIN,
         });
         console.log('Default admin created successfully');
       } catch (error) {
-        console.error('Failed to create default admin:', error);
+        console.error('Failed to create default admin:', error.message);
+        console.error(error.stack);
       }
+    } else {
+      console.log('Admin user already exists, skipping creation');
     }
   }
 }
