@@ -13,6 +13,10 @@ export class AddressDto {
   @IsString()
   province: string;
 
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
   @IsBoolean()
   @IsOptional()
   isDefault?: boolean;

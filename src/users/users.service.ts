@@ -7,7 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AddressDto } from './dto/address.dto';
+import { UpdateAddressDto } from './dto/update-address.dto';
 import { User } from './entities/user.entity';
+import { Address } from './entities/address.entity';
 import { Role } from './enums/role.enum';
 
 @Injectable()
@@ -15,6 +18,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Address)
+    private readonly addressRepository: Repository<Address>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -107,6 +112,20 @@ export class UsersService {
     return { message: 'User deleted successfully' };
   }
 
+  async removeAddress(id: string) {
+    const user = await this.findOne(id);
+
+    // Eliminar toda la información de dirección
+    user.address = null;
+    user.zipCode = null;
+    user.city = null;
+    user.province = null;
+    user.hasDefaultAddress = false;
+
+    await this.userRepository.save(user);
+    return { message: 'Address removed successfully' };
+  }
+
   async createDefaultAdmin() {
     const adminCount = await this.userRepository.countBy({ role: Role.ADMIN });
 
@@ -132,5 +151,82 @@ export class UsersService {
     } else {
       console.log('Admin user already exists, skipping creation');
     }
+  }
+
+  async findAllAddresses(userId: string) {
+    const user = await this.findOne(userId);
+    return this.addressRepository.find({
+      where: { userId: user.id },
+    });
+  }
+
+  async findAddressById(userId: string, addressId: string) {
+    const user = await this.findOne(userId);
+    const address = await this.addressRepository.findOne({
+      where: { id: addressId, userId: user.id },
+    });
+
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    return address;
+  }
+
+  async createAddress(userId: string, addressDto: AddressDto) {
+    const user = await this.findOne(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID: ${userId} not found`);
+    }
+
+    // Si es dirección predeterminada, desactivar cualquier otra dirección predeterminada
+    if (addressDto.isDefault) {
+      await this.addressRepository.update(
+        { userId, isDefault: true },
+        { isDefault: false },
+      );
+    }
+
+    // Crear nueva dirección
+    const newAddress = this.addressRepository.create({
+      ...addressDto,
+      user,
+    });
+
+    return this.addressRepository.save(newAddress);
+  }
+
+  async updateAddress(
+    userId: string,
+    addressId: string,
+    updateAddressDto: UpdateAddressDto,
+  ) {
+    const address = await this.findAddressById(userId, addressId);
+
+    try {
+      // Si estamos estableciendo esta dirección como predeterminada, desmarcamos las demás
+      if (updateAddressDto.isDefault) {
+        await this.addressRepository.update(
+          { userId, isDefault: true },
+          { isDefault: false },
+        );
+      }
+
+      // Actualizar la dirección
+      const updatedAddress = this.addressRepository.merge(
+        address,
+        updateAddressDto,
+      );
+      return this.addressRepository.save(updatedAddress);
+    } catch (error) {
+      throw new BadRequestException('Failed to update address');
+    }
+  }
+
+  async removeAddressById(userId: string, addressId: string) {
+    const address = await this.findAddressById(userId, addressId);
+    await this.addressRepository.remove(address);
+    return { message: 'Address removed successfully' };
   }
 }
