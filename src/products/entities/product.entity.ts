@@ -1,5 +1,3 @@
-// the entity is a class that represents a table (Product) in the database
-
 import {
   BeforeInsert,
   BeforeUpdate,
@@ -8,7 +6,8 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { ProductImage } from '.';
+import { ProductImage } from './product-image.entity';
+import { ProductSize } from './product-size.entity';
 
 @Entity({ name: 'products' })
 export class Product {
@@ -33,16 +32,12 @@ export class Product {
   })
   slug: string;
 
-  @Column('int', {
-    default: 0,
-    nullable: true,
+  // Relationship with ProductSize
+  @OneToMany(() => ProductSize, (productSize) => productSize.product, {
+    cascade: true,
+    eager: true,
   })
-  stock: number;
-
-  @Column('text', {
-    array: true,
-  })
-  sizes: string[];
+  productSizes: ProductSize[];
 
   @Column('text')
   category: string;
@@ -73,10 +68,6 @@ export class Product {
   })
   height: number;
 
-  // https://orkhan.gitbook.io/typeorm/docs/eager-and-lazy-relations
-  // Eager relations only work when you use find* methods. If you use QueryBuilder eager relations are
-  // disabled and have to use leftJoinAndSelect to load the relation. Eager relations can only be
-  // used on one side of the relationship, using eager: true on both sides of relationship is disallowed.
   @OneToMany(() => ProductImage, (productImage) => productImage.product, {
     cascade: true,
     eager: true,
@@ -113,5 +104,11 @@ export class Product {
       .replace(/í/g, 'i')
       .replace(/ó/g, 'o')
       .replace(/ú/g, 'u');
+  }
+
+  // Helper method to get total stock
+  get totalStock(): number {
+    if (!this.productSizes) return 0;
+    return this.productSizes.reduce((total, size) => total + size.stock, 0);
   }
 }

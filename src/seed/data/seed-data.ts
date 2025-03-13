@@ -1,11 +1,15 @@
+export interface ProductSizeData {
+  size: string;
+  stock: number;
+}
+
 export interface SeedProduct {
   id: string;
   title: string;
   price: number;
   description: null | string;
   slug: string;
-  stock: number;
-  sizes: string[];
+  productSizes: ProductSizeData[];
   category: string;
   color: string[] | null;
   material: null;
@@ -28,8 +32,10 @@ export const initialData: SeedData = {
       price: 65000,
       description: 'Mesa de luz con un diseño moderno y elegante.',
       slug: 'mesa_de_luz_color_madera_clara',
-      stock: 8,
-      sizes: ['60x40 cm', '80x60 cm'],
+      productSizes: [
+        { size: '60x40 cm', stock: 4 },
+        { size: '80x60 cm', stock: 4 },
+      ],
       category: 'mesa_de_luz',
       color: [],
       material: null,
@@ -55,8 +61,10 @@ export const initialData: SeedData = {
       price: 60000,
       description: 'Ideal para complementar tu dormitorio.',
       slug: 'mesa_de_luz_color_negro',
-      stock: 12,
-      sizes: ['60x40 cm', '80x60 cm'],
+      productSizes: [
+        { size: '60x40 cm', stock: 4 },
+        { size: '80x60 cm', stock: 4 },
+      ],
       category: 'mesa_de_luz',
       color: [],
       material: null,
@@ -78,8 +86,10 @@ export const initialData: SeedData = {
       price: 70000,
       description: 'Acabados de alta calidad.',
       slug: 'mesa_de_luz_color_blanco',
-      stock: 5,
-      sizes: ['60x40 cm', '80x60 cm'],
+      productSizes: [
+        { size: '60x40 cm', stock: 2 },
+        { size: '80x60 cm', stock: 2 },
+      ],
       category: 'mesa_de_luz',
       color: [],
       material: null,
@@ -99,8 +109,10 @@ export const initialData: SeedData = {
       price: 55000,
       description: 'Mesa de luz con diseño minimalista',
       slug: 'mesa_de_luz_color_marron',
-      stock: 10,
-      sizes: ['60x40 cm', '80x60 cm'],
+      productSizes: [
+        { size: '60x40 cm', stock: 4 },
+        { size: '80x60 cm', stock: 4 },
+      ],
       category: 'mesa_de_luz',
       color: [],
       material: null,
@@ -118,8 +130,10 @@ export const initialData: SeedData = {
       price: 180000,
       description: 'Mueble para TV moderno con almacenamiento integrado.',
       slug: 'mueble_para_tv_color_negro',
-      stock: 7,
-      sizes: ['120x40 cm', '150x45 cm'],
+      productSizes: [
+        { size: '120x40 cm', stock: 2 },
+        { size: '150x45 cm', stock: 2 },
+      ],
       category: 'mesa_tv',
       color: [],
       material: null,
@@ -141,8 +155,10 @@ export const initialData: SeedData = {
       description:
         'Escritorio moderno y funcional, ideal para trabajo o estudio.',
       slug: 'escritorio_minimalista_color_blanco',
-      stock: 10,
-      sizes: ['120x60 cm', '140x70 cm'],
+      productSizes: [
+        { size: '120x60 cm', stock: 5 },
+        { size: '140x70 cm', stock: 5 },
+      ],
       category: 'escritorio',
       color: [],
       material: null,
@@ -164,8 +180,10 @@ export const initialData: SeedData = {
       price: 240000,
       description: null,
       slug: 'respaldo_de_cama_negro',
-      stock: 5,
-      sizes: ['160x120 cm', '180x120 cm'],
+      productSizes: [
+        { size: '160x120 cm', stock: 2 },
+        { size: '180x120 cm', stock: 2 },
+      ],
       category: 'respaldo_de_cama',
       color: [],
       material: null,
@@ -186,8 +204,10 @@ export const initialData: SeedData = {
       price: 300000,
       description: null,
       slug: 'respaldo_de_cama_marron',
-      stock: 10,
-      sizes: ['160x120 cm', '180x120 cm'],
+      productSizes: [
+        { size: '160x120 cm', stock: 5 },
+        { size: '180x120 cm', stock: 5 },
+      ],
       category: 'respaldo_de_cama',
       color: [],
       material: null,
@@ -219,8 +239,10 @@ export const initialData: SeedData = {
       price: 250000,
       description: null,
       slug: 'botinero_color_blanco',
-      stock: 0,
-      sizes: ['100x50 cm', '120x50cm'],
+      productSizes: [
+        { size: '100x50 cm', stock: 0 },
+        { size: '120x50cm', stock: 0 },
+      ],
       category: 'botinero',
       color: [],
       material: null,

@@ -24,12 +24,9 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const { rememberAddress, ...userData } = createUserDto;
-
       const user = this.userRepository.create({
-        ...userData,
-        role: userData.role || Role.CLIENT,
-        hasDefaultAddress: rememberAddress || false,
+        ...createUserDto,
+        role: createUserDto.role || Role.CLIENT,
       });
 
       await this.userRepository.save(user);
@@ -74,14 +71,9 @@ export class UsersService {
         return existingUser;
       }
 
-      console.log(
-        `User with clerkId ${userData.clerkId} not found, creating new user`,
-      );
-
       // Create new user if not exists, passing the entire CreateUserDto
       return await this.create(userData);
     } catch (error) {
-      console.error('Error in findOrCreateByClerkId:', error);
       if (error.code === '23505') {
         throw new BadRequestException('User already exists');
       }
@@ -115,25 +107,25 @@ export class UsersService {
   async removeAddress(id: string) {
     const user = await this.findOne(id);
 
-    // Eliminar toda la información de dirección
-    user.address = null;
-    user.zipCode = null;
-    user.city = null;
-    user.province = null;
-    user.hasDefaultAddress = false;
+    // Find all user addresses
+    const addresses = await this.addressRepository.find({
+      where: { userId: user.id },
+    });
 
-    await this.userRepository.save(user);
-    return { message: 'Address removed successfully' };
+    // Remove all addresses
+    if (addresses.length > 0) {
+      await this.addressRepository.remove(addresses);
+    }
+
+    return { message: 'All addresses removed successfully' };
   }
 
   async createDefaultAdmin() {
     const adminCount = await this.userRepository.countBy({ role: Role.ADMIN });
 
     const adminEmail = process.env.adminEmail;
-    console.log(`Admin email from environment: ${adminEmail || 'Not set'}`);
 
     if (adminCount === 0) {
-      console.log('Creating default admin user...');
       try {
         const defaultEmail = adminEmail;
 
@@ -143,7 +135,6 @@ export class UsersService {
           email: defaultEmail,
           role: Role.ADMIN,
         });
-        console.log('Default admin created successfully');
       } catch (error) {
         console.error('Failed to create default admin:', error.message);
         console.error(error.stack);
@@ -180,7 +171,7 @@ export class UsersService {
       throw new NotFoundException(`User with ID: ${userId} not found`);
     }
 
-    // Si es dirección predeterminada, desactivar cualquier otra dirección predeterminada
+    // If it's default address, deactivate any other default address
     if (addressDto.isDefault) {
       await this.addressRepository.update(
         { userId, isDefault: true },
@@ -188,7 +179,7 @@ export class UsersService {
       );
     }
 
-    // Crear nueva dirección
+    // Create new address
     const newAddress = this.addressRepository.create({
       ...addressDto,
       user,
@@ -205,7 +196,7 @@ export class UsersService {
     const address = await this.findAddressById(userId, addressId);
 
     try {
-      // Si estamos estableciendo esta dirección como predeterminada, desmarcamos las demás
+      // If we're setting this address as default, unmark others
       if (updateAddressDto.isDefault) {
         await this.addressRepository.update(
           { userId, isDefault: true },
@@ -213,7 +204,7 @@ export class UsersService {
         );
       }
 
-      // Actualizar la dirección
+      // Update the address
       const updatedAddress = this.addressRepository.merge(
         address,
         updateAddressDto,

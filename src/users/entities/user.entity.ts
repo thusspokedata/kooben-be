@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Role } from '../enums/role.enum';
+import { Address } from './address.entity';
 
 @Entity()
 export class User {
@@ -22,24 +23,6 @@ export class User {
   })
   role: Role;
 
-  @Column('text', { nullable: true })
-  address: string;
-
-  @Column('text', { nullable: true })
-  zipCode: string;
-
-  @Column('text', { nullable: true })
-  city: string;
-
-  @Column('text', { nullable: true })
-  province: string;
-
-  @Column('text', { nullable: true })
-  phone: string;
-
-  @Column('boolean', { default: false })
-  hasDefaultAddress: boolean;
-
   @Column('timestamp', { default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
@@ -48,4 +31,7 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @OneToMany(() => Address, (address) => address.user, { cascade: true })
+  addresses: Address[];
 }

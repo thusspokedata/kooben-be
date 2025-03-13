@@ -1,4 +1,4 @@
-// controllers should habe the less logic possible, so we should move the logic to the service
+// Controllers should have the least logic possible, so we should move the logic to the service
 
 import {
   Controller,

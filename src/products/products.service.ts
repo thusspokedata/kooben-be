@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { validate as isUUID } from 'uuid';
-import { ProductImage } from './entities';
+import { ProductImage, ProductSize } from './entities';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { extractPublicId } from 'src/common/helpers';
 
@@ -25,6 +25,8 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
+    @InjectRepository(ProductSize)
+    private readonly productSizeRepository: Repository<ProductSize>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly dataSource: DataSource,
   ) {}
@@ -38,29 +40,51 @@ export class ProductsService {
     await queryRunner.startTransaction();
 
     try {
-      const { images: dtoImages = [], ...productDetails } = createProductDto;
+      const {
+        images: dtoImages = [],
+        productSizes,
+        ...productDetails
+      } = createProductDto;
+
+      // Create the product without sizes first
       const product = this.productRepository.create(productDetails);
       await queryRunner.manager.save(product);
 
-      // Upload images to Cloudinary
-      const imageUrls = await Promise.all(
+      // Create each product size
+      if (productSizes && productSizes.length > 0) {
+        const sizes = productSizes.map((sizeData) =>
+          this.productSizeRepository.create({
+            ...sizeData,
+            product,
+          }),
+        );
+        await queryRunner.manager.save(sizes);
+      }
+
+      // Process images from files
+      const uploadedImageUrls = await Promise.all(
         images.map((image) =>
           this.cloudinaryService.uploadImage(image.buffer, image.originalname),
         ),
       );
 
-      const allImageUrls = [...dtoImages, ...imageUrls];
+      // Process images from DTO (URLs)
+      const allImageUrls = [...dtoImages, ...uploadedImageUrls];
 
-      // Create ProductImage entities
-      const productImages = allImageUrls.map((url) =>
-        this.productImageRepository.create({ url, product }),
-      );
-
-      // save ascociated images to the productImages table
-      await queryRunner.manager.save(productImages);
+      // Create product images
+      if (allImageUrls.length > 0) {
+        const productImages = allImageUrls.map((url) =>
+          this.productImageRepository.create({
+            url,
+            product,
+          }),
+        );
+        await queryRunner.manager.save(productImages);
+      }
 
       await queryRunner.commitTransaction();
-      return { ...product, images: imageUrls };
+
+      return this.findOnePlain(product.id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
       this.handleDBExceptions(error);
@@ -75,11 +99,12 @@ export class ProductsService {
       const products = await this.productRepository.find({
         take: limit,
         skip: offset,
-        relations: { images: true },
+        relations: { images: true, productSizes: true },
       });
-      return products.map(({ images, ...rest }) => ({
+      return products.map(({ images, productSizes, ...rest }) => ({
         ...rest,
         images: images.map((image) => image.url),
+        productSizes,
       }));
     } catch (error) {
       this.handleDBExceptions(error);
@@ -90,7 +115,10 @@ export class ProductsService {
     let product: Product;
 
     if (isUUID(term)) {
-      product = await this.productRepository.findOneBy({ id: term }); // findOneBy is the one that works
+      product = await this.productRepository.findOne({
+        where: { id: term },
+        relations: ['images', 'productSizes'],
+      });
     } else {
       const queryBuilder = this.productRepository.createQueryBuilder('prod');
       product = await queryBuilder
@@ -99,20 +127,26 @@ export class ProductsService {
           slug: term.toLowerCase(),
         })
         .leftJoinAndSelect('prod.images', 'prodImages')
+        .leftJoinAndSelect('prod.productSizes', 'prodSizes')
         .getOne();
     }
 
     if (!product) {
-      throw new NotFoundException('Producto no encontrado');
+      throw new NotFoundException('Product not found');
     }
     return product;
   }
 
   async findOnePlain(term: string) {
-    const { images = [], ...rest } = await this.findOne(term);
+    const {
+      images = [],
+      productSizes = [],
+      ...rest
+    } = await this.findOne(term);
     return {
       ...rest,
       images: images.map((image) => image.url),
+      productSizes,
     };
   }
 
@@ -121,85 +155,114 @@ export class ProductsService {
     updateProductDto: UpdateProductDto,
     images: Express.Multer.File[],
   ) {
-    const { images: dtoImages = [], ...toUpdate } = updateProductDto;
-
-    // Load the product with its current images
-    const product = await this.productRepository.findOne({
-      where: { id },
-      relations: ['images'], // Ensure images are loaded with the product
-    });
-
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
-
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      let uploadedImageUrls = [];
+      const {
+        images: dtoImages = [],
+        productSizes,
+        ...toUpdate
+      } = updateProductDto;
 
-      // Upload new images to Cloudinary
-      if (images && images.length > 0) {
-        uploadedImageUrls = await Promise.all(
-          images.map((image) =>
-            this.cloudinaryService.uploadImage(
-              image.buffer,
-              image.originalname,
-            ),
-          ),
-        );
-      }
+      // Find the product
+      const product = await this.productRepository.findOne({
+        where: { id },
+        relations: ['images', 'productSizes'],
+      });
 
-      // Combine existing images, DTO images, and newly uploaded images
-      const allImageUrls = [...dtoImages, ...uploadedImageUrls];
-
-      if (allImageUrls && allImageUrls.length > 0) {
-        // Create new ProductImage entities for the new URLs
-        const newImages = allImageUrls.map((imageUrl) =>
-          this.productImageRepository.create({ url: imageUrl, product }),
-        );
-
-        // Combine new images with the existing ones, preserving the association
-        product.images = [...product.images, ...newImages];
+      if (!product) {
+        throw new NotFoundException(`Product with id ${id} not found`);
       }
 
       // Update product details
-      Object.assign(product, toUpdate);
+      const updatedProduct = await queryRunner.manager.preload(Product, {
+        id,
+        ...toUpdate,
+      });
 
-      // Save the product and its images
-      await queryRunner.manager.save(product);
+      // Handle product sizes update if provided
+      if (productSizes && productSizes.length > 0) {
+        // Remove existing sizes
+        if (product.productSizes?.length) {
+          await queryRunner.manager.remove(product.productSizes);
+        }
+
+        // Create new sizes
+        const newSizes = productSizes.map((sizeData) =>
+          this.productSizeRepository.create({
+            ...sizeData,
+            product: updatedProduct,
+          }),
+        );
+        await queryRunner.manager.save(newSizes);
+      }
+
+      // Process uploaded file images
+      const uploadedImageUrls = await Promise.all(
+        images.map((image) =>
+          this.cloudinaryService.uploadImage(image.buffer, image.originalname),
+        ),
+      );
+
+      // Process images from DTO (URLs)
+      if (dtoImages.length > 0 || uploadedImageUrls.length > 0) {
+        // If we're replacing images, remove existing ones
+        if (product.images?.length) {
+          // Delete from Cloudinary first
+          await Promise.all(
+            product.images.map((image) => {
+              const publicId = extractPublicId(image.url);
+              return this.cloudinaryService.deleteImage(publicId);
+            }),
+          );
+          // Then remove from database
+          await queryRunner.manager.remove(product.images);
+        }
+
+        // Create new images
+        const allImageUrls = [...dtoImages, ...uploadedImageUrls];
+        const productImages = allImageUrls.map((url) =>
+          this.productImageRepository.create({
+            url,
+            product: updatedProduct,
+          }),
+        );
+        await queryRunner.manager.save(productImages);
+      }
+
+      // Save the updated product
+      await queryRunner.manager.save(updatedProduct);
       await queryRunner.commitTransaction();
-      await queryRunner.release();
 
       return this.findOnePlain(id);
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      await queryRunner.release();
       this.handleDBExceptions(error);
+    } finally {
+      await queryRunner.release();
     }
   }
 
   async remove(id: string) {
     const product = await this.findOne(id);
     if (!product) {
-      throw new BadRequestException('Producto no encontrado');
+      throw new BadRequestException('Product not found');
     }
 
-    // Extrac publicIds from the images associated with the product
-    const imagePublicIds = product.images.map((image) =>
-      extractPublicId(image.url),
-    );
-
-    // Delete the images from Cloudinary
-    await Promise.all(
-      imagePublicIds.map((publicId) =>
-        this.cloudinaryService.deleteImage(publicId),
-      ),
-    );
+    // Delete images from Cloudinary
+    if (product.images?.length) {
+      await Promise.all(
+        product.images.map((image) => {
+          const publicId = extractPublicId(image.url);
+          return this.cloudinaryService.deleteImage(publicId);
+        }),
+      );
+    }
 
     await this.productRepository.remove(product);
+    return { message: 'Product deleted successfully' };
   }
 
   private handleDBExceptions(error: any) {

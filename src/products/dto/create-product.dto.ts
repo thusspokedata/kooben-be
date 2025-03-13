@@ -1,18 +1,15 @@
-// this is how I am waiting for the data to be sent to me
-// dto means "data transfer object"
-// npm i class-validator class-transformer
-
-import { Transform } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsArray,
   IsIn,
-  IsInt,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
   MinLength,
+  ValidateNested,
 } from 'class-validator';
+import { CreateProductSizeDto } from './create-product-size.dto';
 
 export class CreateProductDto {
   @IsString()
@@ -33,14 +30,10 @@ export class CreateProductDto {
   @IsOptional()
   slug?: string;
 
-  @IsInt()
-  @IsPositive()
-  @IsOptional()
-  stock?: number;
-
-  @IsString({ each: true })
   @IsArray()
-  sizes: string[];
+  @ValidateNested({ each: true })
+  @Type(() => CreateProductSizeDto)
+  productSizes: CreateProductSizeDto[];
 
   @IsIn([
     'botinero',
