@@ -139,6 +139,8 @@ export class UsersService {
         console.error('Failed to create default admin:', error.message);
         console.error(error.stack);
       }
+    } else {
+      console.log('Admin user already exists, skipping creation');
     }
   }
 
