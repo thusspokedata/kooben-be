@@ -11,21 +11,12 @@ export interface SeedProduct {
   slug: string;
   productSizes: ProductSizeData[];
   category: string;
-<<<<<<< HEAD
   colors: string[];
   material: string;
   length: number;
   width: number;
   height: number;
   tags: string[];
-=======
-  colors: string[] | null;
-  material: null;
-  length: null;
-  width: null;
-  height: null;
-  tags: any[];
->>>>>>> ed211a5 (Rename color field to colors to match frontend expectations)
   images: string[];
 }
 
