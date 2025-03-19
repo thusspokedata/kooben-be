@@ -47,7 +47,7 @@ export class CreateProductDto {
   @IsString({ each: true })
   @IsArray()
   @IsOptional()
-  color?: string[];
+  colors?: string[];
 
   @IsString()
   @IsOptional()
