@@ -32,7 +32,7 @@ export class SeedService {
         slug: product.slug,
         productSizes: product.productSizes,
         category: product.category,
-        color: product.color,
+        colors: product.colors,
         material: product.material,
         length: product.length,
         width: product.width,
