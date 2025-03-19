@@ -7,16 +7,16 @@ export interface SeedProduct {
   id: string;
   title: string;
   price: number;
-  description: null | string;
+  description: string;
   slug: string;
   productSizes: ProductSizeData[];
   category: string;
-  color: string[] | null;
-  material: null;
-  length: null;
-  width: null;
-  height: null;
-  tags: any[];
+  colors: string[];
+  material: string;
+  length: number;
+  width: number;
+  height: number;
+  tags: string[];
   images: string[];
 }
 
@@ -37,7 +37,7 @@ export const initialData: SeedData = {
         { size: '80x60 cm', stock: 4 },
       ],
       category: 'mesa_de_luz',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -66,7 +66,7 @@ export const initialData: SeedData = {
         { size: '80x60 cm', stock: 4 },
       ],
       category: 'mesa_de_luz',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -91,7 +91,7 @@ export const initialData: SeedData = {
         { size: '80x60 cm', stock: 2 },
       ],
       category: 'mesa_de_luz',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -114,7 +114,7 @@ export const initialData: SeedData = {
         { size: '80x60 cm', stock: 4 },
       ],
       category: 'mesa_de_luz',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -135,7 +135,7 @@ export const initialData: SeedData = {
         { size: '150x45 cm', stock: 2 },
       ],
       category: 'mesa_tv',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -160,7 +160,7 @@ export const initialData: SeedData = {
         { size: '140x70 cm', stock: 5 },
       ],
       category: 'escritorio',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -185,7 +185,7 @@ export const initialData: SeedData = {
         { size: '180x120 cm', stock: 2 },
       ],
       category: 'respaldo_de_cama',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -209,7 +209,7 @@ export const initialData: SeedData = {
         { size: '180x120 cm', stock: 5 },
       ],
       category: 'respaldo_de_cama',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
@@ -244,7 +244,7 @@ export const initialData: SeedData = {
         { size: '120x50cm', stock: 0 },
       ],
       category: 'botinero',
-      color: [],
+      colors: [],
       material: null,
       length: null,
       width: null,
