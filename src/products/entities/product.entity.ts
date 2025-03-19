@@ -46,7 +46,7 @@ export class Product {
     array: true,
     nullable: true,
   })
-  colors?: string[];
+  colors: string[];
 
   @Column('text', {
     nullable: true,
