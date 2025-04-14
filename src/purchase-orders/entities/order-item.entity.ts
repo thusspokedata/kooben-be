@@ -8,7 +8,7 @@ import {
   Min,
   IsString,
 } from 'class-validator';
-import { User } from '../../users/entities/user.entity';
+import { PurchaseOrder } from './purchase-order.entity';
 
 @Entity()
 export class OrderItem {
@@ -33,4 +33,7 @@ export class OrderItem {
 
   @Column('text', { default: '' })
   size: string;
+
+  @ManyToOne(() => PurchaseOrder, (order) => order.items)
+  order: PurchaseOrder;
 }

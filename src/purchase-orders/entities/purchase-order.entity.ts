@@ -2,6 +2,7 @@ import {
   Column,
   Entity,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,6 +16,7 @@ import {
 } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
 import { OrderAddress } from './order-address.entity';
+import { OrderItem } from './order-item.entity';
 
 @Entity()
 export class PurchaseOrder {
@@ -65,6 +67,7 @@ export class PurchaseOrder {
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP',
   })
+  @IsDate()
   updatedAt: Date;
 
   @ManyToOne(() => User, (user) => user.id)
@@ -72,4 +75,7 @@ export class PurchaseOrder {
 
   @OneToOne(() => OrderAddress, (address) => address.order)
   shippingAddress: OrderAddress;
+
+  @OneToMany(() => OrderItem, (item) => item.order)
+  items: OrderItem[];
 }
