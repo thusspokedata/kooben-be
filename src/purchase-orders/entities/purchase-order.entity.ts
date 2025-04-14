@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import {
   IsBoolean,
   IsDate,
@@ -8,6 +14,7 @@ import {
   Min,
 } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
+import { OrderAddress } from './order-address.entity';
 
 @Entity()
 export class PurchaseOrder {
@@ -62,4 +69,7 @@ export class PurchaseOrder {
 
   @ManyToOne(() => User, (user) => user.id)
   user: User;
+
+  @OneToOne(() => OrderAddress, (address) => address.order)
+  shippingAddress: OrderAddress;
 }
