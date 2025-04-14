@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { PurchaseOrdersService } from './purchase-orders.service';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { UpdatePurchaseOrderDto } from './dto/update-purchase-order.dto';
@@ -8,27 +18,63 @@ export class PurchaseOrdersController {
   constructor(private readonly purchaseOrdersService: PurchaseOrdersService) {}
 
   @Post()
-  create(@Body() createPurchaseOrderDto: CreatePurchaseOrderDto) {
-    return this.purchaseOrdersService.create(createPurchaseOrderDto);
+  async create(@Body() createPurchaseOrderDto: CreatePurchaseOrderDto) {
+    try {
+      return await this.purchaseOrdersService.create(createPurchaseOrderDto);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get()
-  findAll() {
-    return this.purchaseOrdersService.findAll();
+  async findAll() {
+    try {
+      return await this.purchaseOrdersService.findAll();
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.purchaseOrdersService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    try {
+      const purchaseOrder = await this.purchaseOrdersService.findOne(id);
+      if (!purchaseOrder) {
+        throw new HttpException(
+          'Purchase order not found',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return purchaseOrder;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePurchaseOrderDto: UpdatePurchaseOrderDto) {
-    return this.purchaseOrdersService.update(+id, updatePurchaseOrderDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updatePurchaseOrderDto: UpdatePurchaseOrderDto,
+  ) {
+    try {
+      return await this.purchaseOrdersService.update(
+        id,
+        updatePurchaseOrderDto,
+      );
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.purchaseOrdersService.remove(+id);
+  async remove(@Param('id') id: string) {
+    try {
+      return await this.purchaseOrdersService.remove(id);
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
   }
 }
