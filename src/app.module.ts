@@ -7,6 +7,7 @@ import { SeedModule } from './seed/seed.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { UsersModule } from './users/users.module';
     CloudinaryModule,
     AuthModule,
     UsersModule,
+    PurchaseOrdersModule,
   ],
 })
 export class AppModule {}
