@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsPositive,
   Min,
+  IsString,
 } from 'class-validator';
 import { User } from '../../users/entities/user.entity';
 
@@ -26,11 +27,9 @@ export class OrderItem {
   @Min(0)
   price: number;
 
-  @Column('integer', { default: 0 })
-  @IsInt()
-  @IsPositive()
-  @Min(0)
-  productId: number;
+  @Column('uuid')
+  @IsString()
+  productId: string;
 
   @Column('text', { default: '' })
   size: string;
